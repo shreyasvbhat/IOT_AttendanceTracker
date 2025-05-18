@@ -1,45 +1,40 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './pages/Login';
-import TeacherDashboard from './pages/TeacherDashboard';
-import StudentDashboard from './pages/StudentDashboard';
+import { useState, useEffect } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Login from "./pages/Login";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+import Loader from "./components/Loader";
 
 // Main App Content that uses auth context
 const AppContent = () => {
   const { currentUser, userRole } = useAuth();
   const [loading, setLoading] = useState(true);
-  
+
   // Simulate a short loading time when the app starts
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000);
-    
+    }, 3000);
+
     return () => clearTimeout(timer);
   }, []);
-  
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
-        <p className="mt-4 text-gray-300">Loading EduTrack...</p>
-      </div>
-    );
+   return <Loader/>
   }
-  
+
   if (!currentUser) {
     return <Login />;
   }
-  
-  if (userRole === 'teacher') {
+
+  if (userRole === "teacher") {
     return <TeacherDashboard />;
   }
-  
-  if (userRole === 'student') {
+
+  if (userRole === "student") {
     return <StudentDashboard />;
   }
-  
+
   return <Login />;
 };
 
