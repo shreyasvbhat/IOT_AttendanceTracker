@@ -1,51 +1,66 @@
-import React, { useMemo } from 'react';
-import AttendanceBar from './AttendanceBar';
-import db from '../data/db';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useMemo } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { Users } from "lucide-react";
+import db from "../data/db";
+import { motion } from "framer-motion";
 
 const StudentList = () => {
   const { currentUser } = useAuth();
-  
+
   const students = useMemo(() => {
-    if (!currentUser || currentUser.role !== 'Teacher') {
+    if (!currentUser || currentUser.role !== "Teacher") {
       return [];
     }
-    
-    return db.filter(user => user.role === 'Student');
+    return db.filter((user) => user.role === "Student");
   }, [currentUser]);
 
   return (
-    <div className="overflow-hidden rounded-xl shadow-lg bg-gray-800 border border-gray-700">
-      <div className="px-6 py-4 bg-gray-800 border-b border-gray-700">
-        <h3 className="font-bold text-white text-lg">Student List</h3>
-        <p className="text-gray-400 text-sm mt-1">Displaying {students.length} students</p>
+    <motion.div
+      initial={{ opacity: 0, y: 32, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.8, type: "spring" }}
+      className="rounded-3xl shadow-2xl border border-indigo-900/40 bg-gradient-to-br from-[#232946]/90 via-[#232946]/60 to-[#181a20]/90 backdrop-blur-2xl overflow-hidden"
+    >
+      <div className="px-6 py-5 bg-gradient-to-r from-[#2563eb]/80 to-[#1e40af]/80 border-b border-indigo-900/40 flex items-center space-x-4">
+        <span className="relative">
+          <Users className="h-8 w-8 text-indigo-300 drop-shadow" />
+          <span className="absolute -inset-1 rounded-full bg-indigo-400 opacity-20 blur-lg"></span>
+        </span>
+        <div>
+          <h3 className="font-bold text-white text-lg">Student List</h3>
+          <p className="text-indigo-200 text-sm">
+            Displaying {students.length} students
+          </p>
+        </div>
       </div>
-      
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-700">
-          <thead className="bg-gray-800">
+        <table className="min-w-full divide-y divide-indigo-900/40">
+          <thead className="bg-transparent">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
                 ID
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
                 Name
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
                 Last Active
               </th>
             </tr>
           </thead>
-          <tbody className="bg-gray-800 divide-y divide-gray-700">
+          <tbody className="bg-transparent divide-y divide-indigo-900/40">
             {students.map((student) => (
-              <tr key={student.uid} className="hover:bg-gray-750 transition-colors duration-150">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+              <tr
+                key={student.uid}
+                className="hover:bg-indigo-900/30 transition-colors duration-150 cursor-pointer"
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white font-mono">
                   {student.uid}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                   {student.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-200 font-mono">
                   {new Date(student.timestamp).toLocaleString()}
                 </td>
               </tr>
@@ -53,7 +68,7 @@ const StudentList = () => {
           </tbody>
         </table>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

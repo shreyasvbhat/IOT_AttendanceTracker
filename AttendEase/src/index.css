@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -120,33 +120,72 @@
   }
 }
 
-*{
-  font-family: 'Outfit', sans-serif;
+* {
+  font-family: "Outfit", sans-serif;
 }
 
 @keyframes loader-glow {
-  0%, 100% { stroke-dasharray: 250 100; stroke-dashoffset: 0; }
-  50% { stroke-dasharray: 100 250; stroke-dashoffset: -80; }
+  0%,
+  100% {
+    stroke-dasharray: 250 100;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100 250;
+    stroke-dashoffset: -80;
+  }
 }
 .animate-loader-glow {
   animation: loader-glow 2s ease-in-out infinite;
 }
 
 @keyframes bounce-dot {
-  0%, 100% { transform: translateY(0); box-shadow: 0 0 24px #2563eb88; }
-  20% { transform: translateY(-18px) scale(1.1); box-shadow: 0 8px 32px #0ea5e988; }
-  40% { transform: translateY(0); }
-  60% { transform: translateY(8px) scale(0.95); }
-  80% { transform: translateY(0); }
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 24px #2563eb88;
+  }
+  20% {
+    transform: translateY(-18px) scale(1.1);
+    box-shadow: 0 8px 32px #0ea5e988;
+  }
+  40% {
+    transform: translateY(0);
+  }
+  60% {
+    transform: translateY(8px) scale(0.95);
+  }
+  80% {
+    transform: translateY(0);
+  }
 }
 .animate-bounce-dot {
-  animation: bounce-dot 1.2s cubic-bezier(.68,-0.55,.27,1.55) infinite;
+  animation: bounce-dot 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(16px);}
-  to { opacity: 1; transform: translateY(0);}
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .animate-fade-in {
   animation: fade-in 0.8s 0.3s both;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px #2563eb88);
+  }
+  50% {
+    filter: drop-shadow(0 0 18px #2563ebcc);
+  }
+}
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }
