@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import db from '../data/db';
+import db from "../../public/data/db.json" with { type: "json" };
 
 const AuthContext = createContext();
 

@@ -1,17 +1,27 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Users } from "lucide-react";
-import db from "../data/db";
 import { motion } from "framer-motion";
 
 const StudentList = () => {
   const { currentUser } = useAuth();
+  const [students, setStudents] = useState([]);
 
-  const students = useMemo(() => {
-    if (!currentUser || currentUser.role !== "Teacher") {
-      return [];
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/students"); // Your local server endpoint
+      const data = await res.json();
+      const filtered = data.filter((user) => user.role === "Student");
+      setStudents(filtered);
+    } catch (error) {
+      console.error("Failed to fetch student data", error);
     }
-    return db.filter((user) => user.role === "Student");
+  };
+
+  useEffect(() => {
+    if (currentUser?.role === "Teacher") {
+      fetchStudents();
+    }
   }, [currentUser]);
 
   return (
@@ -37,32 +47,17 @@ const StudentList = () => {
         <table className="min-w-full divide-y divide-indigo-900/40">
           <thead className="bg-transparent">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                Last Active
-              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">ID</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">Last Active</th>
             </tr>
           </thead>
           <tbody className="bg-transparent divide-y divide-indigo-900/40">
             {students.map((student) => (
-              <tr
-                key={student.uid}
-                className="hover:bg-indigo-900/30 transition-colors duration-150 cursor-pointer"
-              >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white font-mono">
-                  {student.uid}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
-                  {student.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-200 font-mono">
-                  {new Date(student.timestamp).toLocaleString()}
-                </td>
+              <tr key={student.uid} className="hover:bg-indigo-900/30 transition-colors duration-150 cursor-pointer">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white font-mono">{student.uid}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">{student.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-200 font-mono">{new Date(student.timestamp).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
