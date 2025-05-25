@@ -1,16 +1,28 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Users } from "lucide-react";
-import db from "../data/db";
-import { rfidStudentMap } from "../data/rfidMap";
+import db from "../../public/data/db.json";
+import { rfidStudentMap } from "../../public/data/rfidMap.js";
 import { motion } from "framer-motion";
 
 const StudentList = () => {
   const { currentUser } = useAuth();
+  const [students, setStudents] = useState([]);
 
-  const students = useMemo(() => {
-    if (!currentUser || currentUser.role !== "Teacher") {
-      return [];
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/students"); // Your local server endpoint
+      const data = await res.json();
+      const filtered = data.filter((user) => user.role === "Student");
+      setStudents(filtered);
+    } catch (error) {
+      console.error("Failed to fetch student data", error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser?.role === "Teacher") {
+      fetchStudents();
     }
     // Only show students whose UID is present in db.js and mapped in rfidStudentMap
     return db

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
-import db from "../data/db";
-import { rfidStudentMap } from "../data/rfidMap";
+import db from "../../public/data/db.json";
+import { rfidStudentMap } from "../../public/data/rfidMap.js";
 
 const AuthContext = createContext();
 
