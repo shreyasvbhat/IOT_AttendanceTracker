@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Users } from "lucide-react";
 import db from "../data/db";
+import { rfidStudentMap } from "../data/rfidMap";
 import { motion } from "framer-motion";
 
 const StudentList = () => {
@@ -11,7 +12,13 @@ const StudentList = () => {
     if (!currentUser || currentUser.role !== "Teacher") {
       return [];
     }
-    return db.filter((user) => user.role === "Student");
+    // Only show students whose UID is present in db.js and mapped in rfidStudentMap
+    return db
+      .filter((user) => user.role === "Student" && rfidStudentMap[user.uid])
+      .map((user) => ({
+        ...user,
+        ...rfidStudentMap[user.uid],
+      }));
   }, [currentUser]);
 
   return (
@@ -33,7 +40,7 @@ const StudentList = () => {
           </p>
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-hide">
         <table className="min-w-full divide-y divide-indigo-900/40">
           <thead className="bg-transparent">
             <tr>
@@ -42,6 +49,21 @@ const StudentList = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
                 Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                USN
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                Roll No
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                Section
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                Sem
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                Email
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-indigo-300 uppercase tracking-wider">
                 Last Active
@@ -59,6 +81,21 @@ const StudentList = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                   {student.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
+                  {student.usn}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
+                  {student.rollNumber}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
+                  {student.section}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
+                  {student.sem}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
+                  {student.email}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-200 font-mono">
                   {new Date(student.timestamp).toLocaleString()}

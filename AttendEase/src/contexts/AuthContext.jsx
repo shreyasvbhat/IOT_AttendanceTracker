@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
-import db from '../data/db';
+import React, { createContext, useContext, useState } from "react";
+import db from "../data/db";
+import { rfidStudentMap } from "../data/rfidMap";
 
 const AuthContext = createContext();
 
@@ -10,21 +11,41 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const login = (uid, role) => {
-    setError('');
-    
-    const user = db.find(u => u.uid === uid && u.role === (role === 'teacher' ? 'Teacher' : 'Student'));
-    
-    if (user) {
-      setCurrentUser(user);
-      setUserRole(role);
-      return true;
+  const login = (usnInput, role) => {
+    setError("");
+    if (role === "teacher") {
+      // For teachers, treat USN as UID
+      const user = db.find((u) => u.uid === usnInput && u.role === "Teacher");
+      if (user) {
+        setCurrentUser(user);
+        setUserRole(role);
+        return true;
+      }
+      setError("Teacher ID not found");
+      return false;
+    } else {
+      // For students, find UID by USN in rfidStudentMap
+      const uid = Object.keys(rfidStudentMap).find(
+        (key) => rfidStudentMap[key].usn === usnInput
+      );
+      if (uid) {
+        // Check if UID is present in db.js (attendance taken)
+        const dbStudent = db.find((u) => u.uid === uid && u.role === "Student");
+        if (dbStudent) {
+          const user = {
+            ...dbStudent,
+            ...rfidStudentMap[uid],
+          };
+          setCurrentUser(user);
+          setUserRole(role);
+          return true;
+        }
+      }
+      setError("Attendance not taken or USN not found");
+      return false;
     }
-    
-    setError(`${role === 'teacher' ? 'Teacher' : 'Student'} ID not found`);
-    return false;
   };
 
   const logout = () => {
@@ -37,12 +58,8 @@ export function AuthProvider({ children }) {
     userRole,
     error,
     login,
-    logout
+    logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
