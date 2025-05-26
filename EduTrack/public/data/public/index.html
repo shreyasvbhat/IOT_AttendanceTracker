@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Webcam Face Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #camera-container {
+            position: relative;
+            width: 640px;
+            margin: 20px auto;
+        }
+        #video {
+            background: #222;
+            width: 100%;
+            border-radius: 8px;
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+        #capture-btn, #retake-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        #retake-btn {
+            background: #f44336;
+            display: none;
+        }
+        #result {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        #snapshot {
+            max-width: 300px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Webcam Face Recognition</h1>
+    <p>Capture an image using your webcam to recognize the face</p>
+    
+    <div id="camera-container">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+    
+    <div class="button-container">
+        <button id="capture-btn">Capture Image</button>
+        <button id="retake-btn">Retake</button>
+    </div>
+    
+    <div id="snapshot-container">
+        <img id="snapshot">
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        // DOM elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapshot = document.getElementById('snapshot');
+        const captureBtn = document.getElementById('capture-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        const resultDiv = document.getElementById('result');
+        
+        // Camera stream
+        let stream = null;
+        
+        // Initialize camera
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: 640,
+                        height: 480,
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Camera error: ", err);
+                resultDiv.innerHTML = `Error accessing camera: ${err.message}`;
+            }
+        }
+        
+        // Capture image from video stream
+        function captureImage() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Show snapshot
+            snapshot.src = canvas.toDataURL('image/jpeg');
+            snapshot.style.display = 'block';
+            
+            // Toggle buttons
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-block';
+            
+            // Send to server for recognition
+            recognizeFace();
+        }
+        
+        // Retake photo
+        function retakePhoto() {
+            snapshot.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            retakeBtn.style.display = 'none';
+            resultDiv.innerHTML = '';
+        }
+        
+        // Send image to server for recognition
+        async function recognizeFace() {
+            resultDiv.innerHTML = '<div class="loading"></div> Processing image...';
+            
+            // Convert canvas to blob
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob, 'capture.jpg');
+                
+                try {
+                    const response = await fetch('/recognize', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        resultDiv.innerHTML = `Error: ${data.error}`;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <h3>Recognition Result:</h3>
+                            <p><strong>Best Match:</strong> ${data.match}</p>
+                            <p><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(2)}%</p>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Recognition error:', error);
+                    resultDiv.innerHTML = 'Error processing image';
+                }
+            }, 'image/jpeg', 0.95);
+        }
+        
+        // Event listeners
+        captureBtn.addEventListener('click', captureImage);
+        retakeBtn.addEventListener('click', retakePhoto);
+        
+        // Initialize on load
+        window.addEventListener('load', initCamera);
+    </script>
+</body>
+</html>

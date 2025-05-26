@@ -11,10 +11,17 @@ const StudentList = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch("http://localhost:3001/students"); // Your local server endpoint
+      const res = await fetch("http://localhost:5959/students"); // Your local server endpoint
       const data = await res.json();
       const filtered = data.filter((user) => user.role === "Student");
-      setStudents(filtered);
+       setStudents(
+      filtered
+        .filter((user) => user.role === "Student" && rfidStudentMap[user.uid])
+        .map((user) => ({
+          ...user,
+          ...rfidStudentMap[user.uid],
+        }))
+    );
     } catch (error) {
       console.error("Failed to fetch student data", error);
     }
@@ -24,13 +31,6 @@ const StudentList = () => {
     if (currentUser?.role === "Teacher") {
       fetchStudents();
     }
-    // Only show students whose UID is present in db.js and mapped in rfidStudentMap
-    return db
-      .filter((user) => user.role === "Student" && rfidStudentMap[user.uid])
-      .map((user) => ({
-        ...user,
-        ...rfidStudentMap[user.uid],
-      }));
   }, [currentUser]);
 
   return (
