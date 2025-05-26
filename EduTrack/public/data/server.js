@@ -6,8 +6,8 @@ import os from "node:os";
 import fs from "fs";
 
 const app = express();
-const PORT = 3001;
-const ipAdd = `10.24.116.139`;
+const PORT = 5959;
+const ipAdd = `192.168.96.104`;
 const dbPath = "./db.json";
 
 app.use(cors());
@@ -48,3 +48,8 @@ app.listen(PORT, () => {
   const { "Wi-Fi": wifi } = os.networkInterfaces();
   console.log(`📡 Server running on http://${ipAdd}:${PORT}`);
 });
+
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log(` is running on http://${os.networkInterfaces()["Wi-Fi"][1].address}:${PORT}`
+//   );
+// });
