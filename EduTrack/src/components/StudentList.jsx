@@ -5,9 +5,8 @@ import db from "../../public/data/db.json";
 import { rfidStudentMap } from "../../public/data/rfidMap.js";
 import { motion } from "framer-motion";
 
-const StudentList = () => {
+const StudentList = ({students,setStudents,isProxyDetected}) => {
   const { currentUser } = useAuth();
-  const [students, setStudents] = useState([]);
 
   const fetchStudents = async () => {
     try {
@@ -21,7 +20,11 @@ const StudentList = () => {
           ...user,
           ...rfidStudentMap[user.uid],
         }))
-    );
+
+      );
+      if(isProxyDetected){
+        setPxroxyDetected(students[students.length-1]);
+      }
     } catch (error) {
       console.error("Failed to fetch student data", error);
     }

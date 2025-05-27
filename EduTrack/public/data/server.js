@@ -57,11 +57,12 @@
 import express from "express";
 import cors from "cors";
 import fileUpload from "express-fileupload";
-// import * as Jimp from "jimp";
-import {Jimp} from "jimp";
+import { Jimp } from "jimp";
 import path from "path";
 import { writeFile, readFile, readdir, unlink, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "url";
+import multer from "multer";
+import fs from "fs"; // Needed for existsSync
 
 // Setup __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -71,12 +72,18 @@ const app = express();
 const PORT = 5959;
 const ipAdd = "192.168.96.104";
 const dbPath = path.join(__dirname, "db.json");
+const samplesDir = path.join(__dirname, "samples");
+
+// Ensure samplesDir exists
+if (!fs.existsSync(samplesDir)) {
+  fs.mkdirSync(samplesDir, { recursive: true });
+}
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
-app.use(express.static("public"));
+// app.use(express.static("public"));
 
 // === Attendance Routes ===
 
@@ -92,7 +99,6 @@ app.post("/api/attendance", async (req, res) => {
     const data = await readFile(dbPath, "utf-8");
     db = JSON.parse(data);
   } catch {
-    // db.json doesn't exist yet
     db = [];
   }
 
@@ -106,8 +112,7 @@ app.post("/api/attendance", async (req, res) => {
   db.push(entry);
 
   await writeFile(dbPath, JSON.stringify(db, null, 2));
-  console.log("📥 Attendance received:");
-  console.log(entry);
+  console.log("📥 Attendance received:", entry);
 
   res.send({ status: "Attendance saved successfully" });
 });
@@ -115,8 +120,7 @@ app.post("/api/attendance", async (req, res) => {
 app.get("/students", async (req, res) => {
   try {
     const data = await readFile(dbPath, "utf-8");
-    const parsed = JSON.parse(data);
-    res.json(parsed);
+    res.json(JSON.parse(data));
   } catch (err) {
     res.status(500).json({ error: "Could not read student data." });
   }
@@ -125,16 +129,18 @@ app.get("/students", async (req, res) => {
 // === Image Recognition Logic ===
 const imageHashes = {};
 
-// Helper: generate hash from image
 async function getImageHash(imagePath) {
   try {
     const image = await Jimp.read(imagePath);
-    image.resize(8, 8).grayscale();
+    // image.resize(128, 128); // Resize to fixed size
 
     let hash = "";
     image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y, idx) => {
-      const pixel = image.bitmap.data[idx];
-      hash += pixel > 128 ? "1" : "0";
+      const red = image.bitmap.data[idx];
+      const green = image.bitmap.data[idx + 1];
+      const blue = image.bitmap.data[idx + 2];
+      const avg = (red + green + blue) / 3;
+      hash += avg > 128 ? "1" : "0";
     });
 
     return hash;
@@ -144,7 +150,6 @@ async function getImageHash(imagePath) {
   }
 }
 
-// Helper: compare two hashes
 function compareHashes(hash1, hash2) {
   let match = 0;
   for (let i = 0; i < hash1.length; i++) {
@@ -153,10 +158,7 @@ function compareHashes(hash1, hash2) {
   return match / hash1.length;
 }
 
-// Load sample hashes
 async function loadSamples() {
-  const samplesDir = path.join(__dirname, "samples");
-
   try {
     const people = await readdir(samplesDir);
     for (const person of people) {
@@ -166,7 +168,6 @@ async function loadSamples() {
       for (const img of images) {
         const imgPath = path.join(personDir, img);
         const hash = await getImageHash(imgPath);
-
         if (hash) {
           if (!imageHashes[person]) imageHashes[person] = [];
           imageHashes[person].push(hash);
@@ -180,7 +181,6 @@ async function loadSamples() {
   }
 }
 
-// Image recognition route
 app.post("/recognize", async (req, res) => {
   if (!req.files || !req.files.image) {
     return res.status(400).json({ error: "No image uploaded" });
@@ -211,7 +211,7 @@ app.post("/recognize", async (req, res) => {
     await unlink(tempPath);
 
     if (bestMatch.name !== "unknown") {
-      const personDir = path.join(__dirname, "samples", bestMatch.name);
+      const personDir = path.join(samplesDir, bestMatch.name);
       try {
         await mkdir(personDir, { recursive: true });
       } catch {}
@@ -231,9 +231,22 @@ app.post("/recognize", async (req, res) => {
   }
 });
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, samplesDir),
+  filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`),
+});
+const upload = multer({ storage });
+
+app.post("/api/upload", upload.single("image"), async (req, res) => {
+  const { uid } = req.body;
+  const imagePath = req.file ? req.file.path : null;
+  const identity = uid ? `student_${uid}` : null;
+  res.json({ identity, imagePath });
+});
+
 // Start server after loading samples
 loadSamples().then(() => {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://${ipAdd}:${PORT}`);
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
   });
 });
