@@ -1,6 +1,7 @@
-import React from 'react';
-import { GraduationCap, LogOut } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { Link } from "react-router-dom";
+import { GraduationCap, LogOut, Home } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -21,12 +22,14 @@ const Header = () => {
             <GraduationCap className="h-8 w-8 text-blue-400 drop-shadow-lg animate-glow" />
             {/* Glowing effect */}
             <span className="absolute -inset-1 rounded-full bg-blue-500 opacity-20 blur-lg"></span>
-          </span>
-          <span className="text-2xl font-extrabold text-white tracking-tight drop-shadow">
+          </span>{" "}
+          <Link
+            to="/"
+            className="text-2xl font-extrabold text-white tracking-tight drop-shadow hover:text-blue-200 transition-colors"
+          >
             EduTrack
-          </span>
-        </motion.div>
-
+          </Link>
+        </motion.div>{" "}
         {currentUser && (
           <motion.div
             initial={{ opacity: 0, x: 30 }}
@@ -34,15 +37,36 @@ const Header = () => {
             transition={{ duration: 0.7, type: "spring", delay: 0.2 }}
             className="flex items-center space-x-4"
           >
+            <nav className="hidden md:flex items-center space-x-4 mr-4">
+              <Link
+                to="/"
+                className="text-blue-100 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+              <Link
+                to={userRole === "teacher" ? "/teacher" : "/student"}
+                className="text-blue-100 hover:text-white transition-colors"
+              >
+                Dashboard
+              </Link>
+            </nav>
             <div className="text-sm text-blue-100 flex items-center gap-2">
               <span>Logged in as:</span>
-              <span className="font-semibold text-white">{currentUser.name}</span>
-              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold
-                ${userRole === 'teacher'
-                  ? 'bg-gradient-to-r from-blue-700 to-sky-600 text-white'
-                  : 'bg-gradient-to-r from-sky-600 to-blue-700 text-white'}
-              `}>
-                {userRole === 'teacher' ? 'Teacher' : 'Student'}
+              <span className="font-semibold text-white">
+                {currentUser.name}
+              </span>
+              <span
+                className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold
+                ${
+                  userRole === "teacher"
+                    ? "bg-gradient-to-r from-blue-700 to-sky-600 text-white"
+                    : "bg-gradient-to-r from-sky-600 to-blue-700 text-white"
+                }
+              `}
+              >
+                {userRole === "teacher" ? "Teacher" : "Student"}
               </span>
             </div>
             <Button

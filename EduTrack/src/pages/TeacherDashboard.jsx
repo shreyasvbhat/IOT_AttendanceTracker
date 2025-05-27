@@ -221,7 +221,12 @@ const TeacherDashboard = () => {
           <div className="text-green-400 mb-4">Attendance complete.</div>
         )}
         <div className="w-full max-w-4xl">
-          <StudentList students={students} setStudents={setStudents} isProxyDetected={isProxyDetected} setProxyAlert={setProxyAlert}/>
+          <StudentList
+            students={students}
+            setStudents={setStudents}
+            isProxyDetected={isProxyDetected}
+            setProxyAlert={setProxyAlert}
+          />
         </div>
       </main>
       <Footer />

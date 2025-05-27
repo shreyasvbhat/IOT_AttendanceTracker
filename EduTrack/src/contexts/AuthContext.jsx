@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import db from "../../public/data/db.json";
 import { rfidStudentMap } from "../../public/data/rfidMap.js";
 
@@ -9,9 +10,39 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+  // Initialize state from localStorage if available
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser = localStorage.getItem("currentUser");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const [userRole, setUserRole] = useState(() => {
+    return localStorage.getItem("userRole") || null;
+  });
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Effect to handle authentication on route changes or app initialization
+  useEffect(() => {
+    const savedUser = localStorage.getItem("currentUser");
+    const savedRole = localStorage.getItem("userRole");
+
+    if (savedUser && savedRole) {
+      const user = JSON.parse(savedUser);
+
+      // Update state if not already set
+      if (!currentUser) {
+        setCurrentUser(user);
+        setUserRole(savedRole);
+      }
+
+      // Redirect to appropriate dashboard if on login page
+      if (location.pathname === "/login") {
+        navigate(savedRole === "teacher" ? "/teacher" : "/student");
+      }
+    }
+  }, [location.pathname, navigate, currentUser]);
 
   const login = (usnInput, role) => {
     setError("");
@@ -21,6 +52,9 @@ export function AuthProvider({ children }) {
       if (user) {
         setCurrentUser(user);
         setUserRole(role);
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        localStorage.setItem("userRole", role);
+        navigate("/teacher");
         return true;
       }
       setError("Teacher ID not found");
@@ -40,6 +74,9 @@ export function AuthProvider({ children }) {
           };
           setCurrentUser(user);
           setUserRole(role);
+          localStorage.setItem("currentUser", JSON.stringify(user));
+          localStorage.setItem("userRole", role);
+          navigate("/student");
           return true;
         }
       }
@@ -47,10 +84,12 @@ export function AuthProvider({ children }) {
       return false;
     }
   };
-
   const logout = () => {
     setCurrentUser(null);
     setUserRole(null);
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("userRole");
+    navigate("/login");
   };
 
   const value = {

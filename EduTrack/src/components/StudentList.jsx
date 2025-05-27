@@ -5,7 +5,7 @@ import db from "../../public/data/db.json";
 import { rfidStudentMap } from "../../public/data/rfidMap.js";
 import { motion } from "framer-motion";
 
-const StudentList = ({students,setStudents,isProxyDetected}) => {
+const StudentList = ({ students, setStudents, isProxyDetected }) => {
   const { currentUser } = useAuth();
 
   const fetchStudents = async () => {
@@ -13,17 +13,16 @@ const StudentList = ({students,setStudents,isProxyDetected}) => {
       const res = await fetch("http://localhost:5959/students"); // Your local server endpoint
       const data = await res.json();
       const filtered = data.filter((user) => user.role === "Student");
-       setStudents(
-      filtered
-        .filter((user) => user.role === "Student" && rfidStudentMap[user.uid])
-        .map((user) => ({
-          ...user,
-          ...rfidStudentMap[user.uid],
-        }))
-
+      setStudents(
+        filtered
+          .filter((user) => user.role === "Student" && rfidStudentMap[user.uid])
+          .map((user) => ({
+            ...user,
+            ...rfidStudentMap[user.uid],
+          }))
       );
-      if(isProxyDetected){
-        setPxroxyDetected(students[students.length-1]);
+      if (isProxyDetected) {
+        setPxroxyDetected(students[students.length - 1]);
       }
     } catch (error) {
       console.error("Failed to fetch student data", error);
